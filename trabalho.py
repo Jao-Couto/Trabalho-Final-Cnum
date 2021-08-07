@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tabulate import tabulate
 from EulerExplicito import eulerExplicito
+from EulerMelhorado import eulerMelhorado
+from EulerModificado import eulerModificado
+
 
 def calcExata(uExata,t_interv, n):
     t=np.linspace(t_interv[0], t_interv[1], n)
@@ -26,19 +29,26 @@ def calcErro(uAprox, uExata,t_interv, n):
         erro.append(errofun)
     return erro
 
-def plot(uAprox, uExat, t_interv, n, tipo):
+def plot(uAproxExp, uAproxMod, uAproxMel, uExat, t_interv, n):
     t=np.linspace(t_interv[0], t_interv[1], n)
     h = t[1] -t[0]
-    for i in range(0, len(uAprox)):
+    for i in range(len(uExat)):
         plt.figure(i+1)
-        plt.plot(t, uAprox[i], label='%s u%d'%(tipo,i+1))
-        plt.plot(t, uExat[i], label='Esperado u%d'%(i+1))
-        plt.legend()
-        plt.title("h = %f"% h)
+        plt.plot(t, uExat[i], label="Exata")
+    nomeTipos = ["Explícita", "Modificada", "Melhorada"]
+    aproximaList = [uAproxExp, uAproxMod, uAproxMel]
 
+    for uAprox, tipo in zip(aproximaList, nomeTipos):
+        for i in range(len(uAprox)):
+            plt.figure(i+1)
+            plt.plot(t, uAprox[i], label='%s u%d'%(tipo,i+1))
+            plt.legend()
+            plt.title("h = %f"% h)
+    
 
-
-def func(t, u):
+#-----------------------------------------------EXERCÍCIO 1-----------------------------------------------------
+#A)
+def funcA(t, u):
     u0 = 3*u[0] +2*u[1] -(2*(t**2)+1)*np.exp(2*t)
     u1 = 4*u[0] +u[1]+(t**2 + 2*t -4)*np.exp(2*t)
     return np.array([u0,u1])
@@ -46,16 +56,139 @@ def func(t, u):
 inter = [0,1] 
 un = [1,1]
 
-u = eulerExplicito(func, inter, un, 6)
+uExp = eulerExplicito(funcA, inter, un, 6)
+uMel = eulerMelhorado(funcA, inter, un, 6)
+uMod = eulerModificado(funcA, inter, un, 6)
 
 u1 = lambda t:(1/3)*np.exp(5*t)-(1/3)*np.exp(-t)+np.exp(2*t)
 u2 = lambda t:(1/3)*np.exp(5*t)+(2/3)*np.exp(-t)+t**2*np.exp(2*t)
+N = 6
 
 ex = [u1,u2]
-erro = calcErro(u, ex, inter, 6)
+header = [str(x) for x in range(1, N+1)]
+erroExp = calcErro(uExp, ex, inter, N)
 print("\nErro Explícito:\n")
-print(tabulate(erro,headers=["1","2","3","4","5","6"]))
+print(tabulate(erroExp,headers=header))
 
-exata = calcExata(ex,inter,6)
-plot(u, exata, inter, 6, "Explícito")
+erroMel = calcErro(uMel, ex, inter, N)
+print("\nErro Melhorada:\n")
+print(tabulate(erroMel,headers=header))
+
+erroMod = calcErro(uMod, ex, inter, N)
+print("\nErro Modificada:\n")
+print(tabulate(erroMod,headers=header))
+
+exata = calcExata(ex,inter,N)
+plot(uExp, uMel, uMod, exata, inter, N)
+plt.show()
+
+
+#B)
+def funcB(t, u):
+    u0 = -4*u[0] - 2*u[1] + np.cos(t) + 4*np.sin(t)
+    u1 = 3*u[0] + u[1] - 3*np.sin(t)
+    return np.array([u0,u1])
+    
+inter = [0,2] 
+un = [0,-1]
+N = 21
+
+uExp = eulerExplicito(funcB, inter, un, N)
+uMel = eulerMelhorado(funcB, inter, un, N)
+uMod = eulerModificado(funcB, inter, un, N)
+
+u1 = lambda t:  2*np.exp(-t) - 2*np.exp(-2*t) + np.sin(t)
+u2 = lambda t: -3*np.exp(-t) + 2*np.exp(-2*t)
+
+ex = [u1,u2]
+header = [str(x) for x in range(1, N+1)]
+erroExp = calcErro(uExp, ex, inter, N)
+print("\nErro Explícito:\n")
+print(tabulate(erroExp,headers=header))
+
+erroMel = calcErro(uMel, ex, inter, N)
+print("\nErro Melhorada:\n")
+print(tabulate(erroMel,headers=header))
+
+erroMod = calcErro(uMod, ex, inter, N)
+print("\nErro Modificada:\n")
+print(tabulate(erroMod,headers=header))
+
+exata = calcExata(ex,inter,N)
+plot(uExp, uMel, uMod, exata, inter, N)
+plt.show()
+
+#C)
+def funcC(t, u):
+    u0 = u[1]
+    u1 = -u[0] - 2*np.exp(t) + 1
+    u2 = -u[0] - np.exp(t) + 1
+    return np.array([u0,u1, u2])
+    
+inter = [0,2] 
+un = [1, 0, 1]
+N = 5
+
+uExp = eulerExplicito(funcC, inter, un, N)
+uMel = eulerMelhorado(funcC, inter, un, N)
+uMod = eulerModificado(funcC, inter, un, N)
+
+u1 = lambda t: np.cos(t) + np.sin(t) - np.exp(t) + 1
+u2 = lambda t: np.cos(t) - np.sin(t) - np.exp(t)
+u3 = lambda t: np.cos(t) - np.sin(t)
+
+ex = [u1,u2, u3]
+header = [str(x) for x in range(1, N+1)]
+erroExp = calcErro(uExp, ex, inter, N)
+print("\nErro Explícito:\n")
+print(tabulate(erroExp,headers=header))
+
+erroMel = calcErro(uMel, ex, inter, N)
+print("\nErro Melhorada:\n")
+print(tabulate(erroMel,headers=header))
+
+erroMod = calcErro(uMod, ex, inter, N)
+print("\nErro Modificada:\n")
+print(tabulate(erroMod,headers=header))
+
+exata = calcExata(ex,inter,N)
+plot(uExp, uMel, uMod, exata, inter, N)
+plt.show()
+
+
+#D)
+def funcD(t, u):
+    u0 = u[1] - u[2] + t
+    u1 = 3 * t**2
+    u2 = u[1] + np.exp(-t)
+    return np.array([u0,u1, u2])
+    
+inter = [0,1] 
+un = [1, 1, -1]
+N = 11
+
+uExp = eulerExplicito(funcD, inter, un, N)
+uMel = eulerMelhorado(funcD, inter, un, N)
+uMod = eulerModificado(funcD, inter, un, N)
+
+u1 = lambda t: -0.05*t**5 + 0.25*t**4 + t + 2 - np.exp(-t)
+u2 = lambda t: t**3 + 1
+u3 = lambda t: 0.25*t**4 + t - np.exp(-t)
+
+ex = [u1,u2, u3]
+header = [str(x) for x in range(1, N)]
+erroExp = calcErro(uExp, ex, inter, N)
+print("\nErro Explícito:\n")
+print(tabulate(erroExp,headers=header))
+
+erroMel = calcErro(uMel, ex, inter, N)
+print("\nErro Melhorada:\n")
+print(tabulate(erroMel,headers=header))
+
+erroMod = calcErro(uMod, ex, inter, N)
+print("\nErro Modificada:\n")
+print(tabulate(erroMod,headers=header))
+
+exata = calcExata(ex,inter,N)
+plot(uExp, uMel, uMod, exata, inter, N)
 plt.show()
