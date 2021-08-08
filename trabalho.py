@@ -29,7 +29,7 @@ def calcErro(uAprox, uExata,t_interv, n):
         erro.append(errofun)
     return erro
 
-def plot(uAproxExp, uAproxMod, uAproxMel, uExat, t_interv, n):
+def plot(uAproxExp, uAproxMod, uAproxMel, uExat, t_interv, n, exerc):
     t=np.linspace(t_interv[0], t_interv[1], n)
     h = t[1] -t[0]
     for i in range(len(uExat)):
@@ -43,7 +43,7 @@ def plot(uAproxExp, uAproxMod, uAproxMel, uExat, t_interv, n):
             plt.figure(i+1)
             plt.plot(t, uAprox[i], label='%s u%d'%(tipo,i+1))
             plt.legend()
-            plt.title("h = %f"% h)
+            plt.title("%s, h = %f"% (exerc, h))
     
 
 #-----------------------------------------------EXERCÍCIO 1-----------------------------------------------------
@@ -79,7 +79,7 @@ print("\nErro Modificada:\n")
 print(tabulate(erroMod,headers=header))
 
 exata = calcExata(ex,inter,N)
-plot(uExp, uMel, uMod, exata, inter, N)
+plot(uExp, uMel, uMod, exata, inter, N, "1a")
 plt.show()
 
 
@@ -115,7 +115,7 @@ print("\nErro Modificada:\n")
 print(tabulate(erroMod,headers=header))
 
 exata = calcExata(ex,inter,N)
-plot(uExp, uMel, uMod, exata, inter, N)
+plot(uExp, uMel, uMod, exata, inter, N, "1b")
 plt.show()
 
 #C)
@@ -152,7 +152,7 @@ print("\nErro Modificada:\n")
 print(tabulate(erroMod,headers=header))
 
 exata = calcExata(ex,inter,N)
-plot(uExp, uMel, uMod, exata, inter, N)
+plot(uExp, uMel, uMod, exata, inter, N, "1c")
 plt.show()
 
 
@@ -190,5 +190,34 @@ print("\nErro Modificada:\n")
 print(tabulate(erroMod,headers=header))
 
 exata = calcExata(ex,inter,N)
-plot(uExp, uMel, uMod, exata, inter, N)
+plot(uExp, uMel, uMod, exata, inter, N, "1d")
 plt.show()
+
+
+
+#2
+def func2(t, v):
+    F = lambda x: 0.0039 + 0.0058/(1+np.exp(0.2*(x-35))) 
+    normal = np.sqrt(v[0]**2+v[1]**2+v[2]**2)
+    B = 4.1 * 10**-4
+    w = 180*1.047198
+    f0 = -F(normal)*normal*v[0]+B*w*(v[2]*np.sin(0)-v[1]*np.cos(0))
+    f1 = -F(normal)*normal*v[1]+B*w*v[0]*np.cos(0)
+    f2 = -F(normal)*normal*v[2]-B*w*v[0]*np.sin(0)-9.8
+
+    return np.array([f0, f1, f2])
+
+inter = [0,0.5] 
+un = [38*np.cos(1), 0, 38*np.sin(1)] 
+N = 51
+
+uExp = eulerExplicito(func2, inter, un, N)
+uMel = eulerMelhorado(func2, inter, un, N)
+uMod = eulerModificado(func2, inter, un, N)
+
+exata = calcExata(ex,inter,N)
+plot(uExp, uMel, uMod, exata, inter, N, "2")
+plt.show()
+
+import solve_ivp
+#Atinge o chão depois de 2.5 segundos
